@@ -200,7 +200,7 @@ class auth {
   @param {object} [req] - the req object passed into us from drachtio
   @param {authorization} authorization
   @param {string} password
-  @returns {string} - the calculated hash
+  @returns {boolean} - success?
   */
   verifyauth( req, authorization, password ) {
 
