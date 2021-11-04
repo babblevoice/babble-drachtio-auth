@@ -40,7 +40,7 @@ describe( "sipauth", function() {
 
     expect( a._realm ).to.be.a( "string" ).to.equal( "dummy.com" )
     expect( a._header ).to.be.a( "string" ).to.equal( "Proxy-Authenticate" )
-    expect( a._responceheader ).to.be.a( "string" ).to.equal( "Proxy-Authorization" )
+    expect( a._responseheader ).to.be.a( "string" ).to.equal( "Proxy-Authorization" )
 
   } )
 

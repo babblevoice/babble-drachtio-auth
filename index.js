@@ -64,11 +64,11 @@ class auth {
     this._realm = this._realm[ 0 ]
 
     this._header = "WWW-Authenticate"
-    this._responceheader = "Authorization"
+    this._responseheader = "Authorization"
     let code = 401
     if( this._proxy ) {
       this._header = "Proxy-Authenticate"
-      this._responceheader = "Proxy-Authorization"
+      this._responseheader = "Proxy-Authorization"
       code = 407
     }
 
@@ -135,7 +135,7 @@ class auth {
   @property {string} nonce
   @property {string} uri
   @property {string} qop
-  @property {string} responce
+  @property {string} response
   @property {string} opaque
   @property {string} cnonce
   */
@@ -154,20 +154,20 @@ class auth {
       "nonce": "",
       "uri": "",
       "qop": "",
-      "responce": "",
+      "response": "",
       "opaque": "",
       "cnonce": ""
     }
 
     try {
-      let authheader = req.get( this._responceheader )
+      let authheader = req.get( this._responseheader )
 
       let realm = realmre.exec( authheader )
       let username = usernamere.exec( authheader )
       let nonce = noncere.exec( authheader )
       let uri = urire.exec( authheader )
       let qop = qopre.exec( authheader )
-      let responce = responsere.exec( authheader )
+      let response = responsere.exec( authheader )
       let opaque = opaquere.exec( authheader )
       let cnonce = cnoncere.exec( authheader )
 
@@ -176,7 +176,7 @@ class auth {
       if( null !== nonce && nonce.length > 0 ) ret.nonce = nonce[ 1 ]
       if( null !== uri && uri.length > 0 ) ret.uri = uri[ 1 ]
       if( null !== qop && qop.length > 0 ) ret.qop = qop[ 1 ]
-      if( null !== responce && responce.length > 0 ) ret.responce = responce[ 1 ]
+      if( null !== response && response.length > 0 ) ret.response = response[ 1 ]
       if( null !== opaque && opaque.length > 0 ) ret.opaque = opaque[ 1 ]
       if( null !== cnonce && cnonce.length > 0 ) ret.cnonce = cnonce[ 1 ]
     } catch( e ) {
@@ -202,8 +202,8 @@ class auth {
       if( this._nonce !== authorization.nonce ) return false
       if( authorization.uri !== req.msg.uri ) return false
 
-      let calculatedresponce = this.calcauthhash( authorization.username, password, this._realm, authorization.uri, req.msg.method, authorization.cnonce )
-      if( authorization.responce !==  calculatedresponce ) return false
+      let calculatedresponse = this.calcauthhash( authorization.username, password, this._realm, authorization.uri, req.msg.method, authorization.cnonce )
+      if( authorization.response !==  calculatedresponse ) return false
     } catch( e ) {
       console.error( e )
       return false
