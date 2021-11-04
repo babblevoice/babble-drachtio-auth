@@ -12,6 +12,8 @@ const urire = /[,\s]{1}uri="?(.+?)[",]/
 const qopre = /[,\s]{1}qop="?(.+?)[",]/
 const responsere = /[,\s]{1}response="?(.+?)[",]/
 const opaquere = /[,\s]{1}opaque="?(.+?)[",]/
+const ncre = /[,\s]{1}nc="?(.+?)[",]/
+const algorithmre = /[,\s]{1}algorithm="?(.+?)[",]/
 
 
 class auth {
@@ -156,7 +158,9 @@ class auth {
       "qop": "",
       "response": "",
       "opaque": "",
-      "cnonce": ""
+      "cnonce": "",
+      "nc": "",
+      "algorithm": ""
     }
 
     try {
@@ -170,6 +174,8 @@ class auth {
       let response = responsere.exec( authheader )
       let opaque = opaquere.exec( authheader )
       let cnonce = cnoncere.exec( authheader )
+      let nc = ncre.exec( authheader )
+      let algorithm = algorithmre.exec( authheader )
 
       if( null !== realm && realm.length > 0 ) ret.realm = realm[ 1 ]
       if( null !== username && username.length > 0 ) ret.username = username[ 1 ]
@@ -179,6 +185,8 @@ class auth {
       if( null !== response && response.length > 0 ) ret.response = response[ 1 ]
       if( null !== opaque && opaque.length > 0 ) ret.opaque = opaque[ 1 ]
       if( null !== cnonce && cnonce.length > 0 ) ret.cnonce = cnonce[ 1 ]
+      if( null !== nc && nc.length > 0 ) ret.nc = nc[ 1 ]
+      if( null !== algorithm && algorithm.length > 0 ) ret.algorithm = nc[ 1 ]
     } catch( e ) {
       console.error( e )
     }
