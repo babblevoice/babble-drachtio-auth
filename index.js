@@ -80,7 +80,7 @@ class auth {
     if( this._qop ) headstr += `qop="${this._qop}", `
     headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=false`
 
-    options.headers[ this._responceheader ] = headstr
+    options.headers[ this._header ] = headstr
     res.send( code, options )
     return true
   }

@@ -22,7 +22,7 @@ describe( "sipauth", function() {
     res.onsend( ( sipcode, msg ) => {
       if( 407 === sipcode ) {
         has407beensent = true
-        expect( msg.headers[ "Proxy-Authorization" ] ).to.be.a( "string" )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
       }
     } )
     expect( a.requestauth( req, res ) ).to.be.true
@@ -110,7 +110,7 @@ describe( "sipauth", function() {
     res.onsend( ( sipcode, msg ) => {
       if( 401 === sipcode ) {
         has401beensent = true
-        expect( msg.headers[ "Authorization" ] ).to.be.a( "string" )
+        expect( msg.headers[ "WWW-Authenticate" ] ).to.be.a( "string" )
       }
     } )
 
