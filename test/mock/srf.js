@@ -28,7 +28,7 @@ class req {
     }
 
     this.setparsedheader( "call-id", uuidv4() )
-    this.setparsedheader( "from", { "params": { "tag": "767sf76wew" }, "uri": "sip:1000@dummy.com" } )
+    this.setparsedheader( "from", { "params": { "tag": "767sf76wew" }, "uri": "sip:1000@dummy.com", "host": "dummy.com" } )
   }
 
   /* case insensative */

@@ -61,6 +61,7 @@ class auth {
     let from = req.getParsedHeader( "from" )
     this._realm = domainnamere.exec( from.host )
     if( !this._realm || 0 === this._realm.length ) return false
+    this._realm = this._realm[ 0 ]
 
     this._header = "WWW-Authenticate"
     this._responceheader = "Authorization"
