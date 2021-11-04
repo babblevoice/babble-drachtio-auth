@@ -101,6 +101,7 @@ describe( "sipauth", function() {
     } )
 
     a.requestauth( req, res )
+    expect( has401beensent ).to.be.true
 
     let authstr = `Digest username="bob",
 realm="${realm}",
@@ -114,8 +115,12 @@ response="${digest}",
 opaque="${a._opaque}"`
 
     req.set( "authorization", authstr )
-    expect( a.verifyauth( req, res, username, password ) ).to.be.true
-    expect( has401beensent ).to.be.true
+
+    let authobj = a.parseauthheaders( req, res )
+    expect( authobj ).to.be.a( "object" )
+
+    expect( authobj.username ).to.be.a( "string" ).to.equal( username )
+    expect( a.verifyauth( req, authobj, password ) ).to.be.true
 
   } )
 } )

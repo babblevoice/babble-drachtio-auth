@@ -5,6 +5,7 @@ const domainnamere = /(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9
 
 /* digest components */
 const realmre = /[,\s]{1}realm="?(.+?)[",]/
+const usernamere = /[,\s]{1}username="?(.+?)[",]/
 const noncere = /[,\s]{1}nonce="?(.+?)[",]/
 const cnoncere = /[,\s]{1}cnonce="?(.+?)[",]/
 const urire = /[,\s]{1}uri="?(.+?)[",]/
@@ -126,20 +127,42 @@ class auth {
   }
 
   /**
-  Verify the requested auth, does not send reponse - the caller should do this.
-  auth.requestauth MUST be called before this call to check
+  Object which references the values in a authorization header.
+  @typedef {Object} authorization
+  @property {string} realm
+  @property {string} username
+  @property {string} nonce
+  @property {string} uri
+  @property {string} qop
+  @property {string} responce
+  @property {string} opaque
+  @property {string} cnonce
+  */
+
+  /**
+  We have a response to our request, pull out all of the headers and return them.
   @param {object} [req] - the req object passed into us from drachtio
   @param {object} [res] - the res object passed into us from drachtio
-  @param {string} username
-  @param {string} password
-  @returns {string} - the calculated hash
+  @returns {authorization}
   */
-  verifyauth( req, res, username, password ) {
+  parseauthheaders( req, res ) {
+
+    let ret = {
+      "realm": "",
+      "username": "",
+      "nonce": "",
+      "uri": "",
+      "qop": "",
+      "responce": "",
+      "opaque": "",
+      "cnonce": ""
+    }
 
     try {
       let authheader = req.get( this._responceheader )
 
       let realm = realmre.exec( authheader )
+      let username = usernamere.exec( authheader )
       let nonce = noncere.exec( authheader )
       let uri = urire.exec( authheader )
       let qop = qopre.exec( authheader )
@@ -147,20 +170,39 @@ class auth {
       let opaque = opaquere.exec( authheader )
       let cnonce = cnoncere.exec( authheader )
 
-      if( null !== realm && realm.length > 0 ) realm = realm[ 1 ]; else realm = ""
-      if( null !== nonce && nonce.length > 0 ) nonce = nonce[ 1 ]; else nonce = ""
-      if( null !== uri && uri.length > 0 ) uri = uri[ 1 ]; else uri = ""
-      if( null !== qop && qop.length > 0 ) qop = qop[ 1 ]; else qop = ""
-      if( null !== responce && responce.length > 0 ) responce = responce[ 1 ]; else responce = ""
-      if( null !== opaque && opaque.length > 0 ) opaque = opaque[ 1 ]; else opaque = ""
-      if( null !== cnonce && cnonce.length > 0 ) cnonce = cnonce[ 1 ]; else cnonce = ""
+      if( null !== realm && realm.length > 0 ) ret.realm = realm[ 1 ]
+      if( null !== username && username.length > 0 ) ret.username = username[ 1 ]
+      if( null !== nonce && nonce.length > 0 ) ret.nonce = nonce[ 1 ]
+      if( null !== uri && uri.length > 0 ) ret.uri = uri[ 1 ]
+      if( null !== qop && qop.length > 0 ) ret.qop = qop[ 1 ]
+      if( null !== responce && responce.length > 0 ) ret.responce = responce[ 1 ]
+      if( null !== opaque && opaque.length > 0 ) ret.opaque = opaque[ 1 ]
+      if( null !== cnonce && cnonce.length > 0 ) ret.cnonce = cnonce[ 1 ]
+    } catch( e ) {
+      console.error( e )
+    }
 
-      if( this._opaque !== opaque ) return false
-      if( this._nonce !== nonce ) return false
-      if( uri !== req.msg.uri ) return false
+    return ret
+  }
 
-      let calculatedresponce = this.calcauthhash( username, password, this._realm, uri, req.msg.method, cnonce )
-      if( responce !==  calculatedresponce ) return false
+  /**
+  Verify the requested auth, does not send reponse - the caller should do this.
+  auth.requestauth MUST be called before this call to check
+  @param {object} [req] - the req object passed into us from drachtio
+  @param {authorization} authorization
+  @param {string} password
+  @returns {string} - the calculated hash
+  */
+  verifyauth( req, authorization, password ) {
+
+    try {
+
+      if( this._opaque !== authorization.opaque ) return false
+      if( this._nonce !== authorization.nonce ) return false
+      if( authorization.uri !== req.msg.uri ) return false
+
+      let calculatedresponce = this.calcauthhash( authorization.username, password, this._realm, authorization.uri, req.msg.method, authorization.cnonce )
+      if( authorization.responce !==  calculatedresponce ) return false
     } catch( e ) {
       console.error( e )
       return false
