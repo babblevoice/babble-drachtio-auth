@@ -186,7 +186,7 @@ class auth {
       if( null !== opaque && opaque.length > 0 ) ret.opaque = opaque[ 1 ]
       if( null !== cnonce && cnonce.length > 0 ) ret.cnonce = cnonce[ 1 ]
       if( null !== nc && nc.length > 0 ) ret.nc = nc[ 1 ]
-      if( null !== algorithm && algorithm.length > 0 ) ret.algorithm = nc[ 1 ]
+      if( null !== algorithm && algorithm.length > 0 ) ret.algorithm = algorithm[ 1 ]
     } catch( e ) {
       console.error( e )
     }

@@ -44,6 +44,52 @@ describe( "sipauth", function() {
 
   } )
 
+  it( `parseauthheaders sets values correctly`, async function() {
+
+    let a = new sipauth()
+    a.proxy = false
+    a._responseheader = "Authorization"
+
+    let req = new srf.req()
+    let res = new srf.res()
+
+    let username = "bob"
+    let password = "zanzibar"
+    let nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093"
+    let opaque = "5ccc069c403ebaf9f0171e9517f40e41"
+    let realm = "biloxi.com"
+    let uri = "sip:bob@biloxi.com"
+    let cnonce = "0a4f113b"
+    let method = "INVITE"
+    let digest = "89eb0059246c02b2f6ee02c7961d5ea3"
+
+    let authstr = `Digest username="bob",
+realm="${realm}",
+nonce="${nonce}",
+uri="${uri}",
+qop=auth,
+algorithm=MD5,
+nc=00000001,
+cnonce="${cnonce}",
+response="${digest}",
+opaque="${a._opaque}"`
+
+    req.set( "authorization", authstr )
+
+    let params = a.parseauthheaders( req, res )
+
+    expect( params.realm ).to.equal( "biloxi.com" )
+    expect( params.nonce ).to.equal( nonce )
+    expect( params.uri ).to.equal( uri )
+    expect( params.qop ).to.equal( "auth" )
+    expect( params.algorithm ).to.equal( "MD5" )
+    expect( params.nc ).to.equal( "00000001" )
+    expect( params.cnonce ).to.equal( cnonce )
+    expect( params.response ).to.equal( digest )
+    expect( params.opaque ).to.equal( a._opaque )
+
+  } )
+
   /* https://datatracker.ietf.org/doc/html/draft-smith-sipping-auth-examples-01 */
 
   it( `3.1 example`, async function() {
