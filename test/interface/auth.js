@@ -23,6 +23,12 @@ describe( "sipauth", function() {
       if( 407 === sipcode ) {
         has407beensent = true
         expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `Digest realm="dummy.com"` )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "algorithm=MD5" )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `qop="auth"` )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "nonce=" )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "opaque=" )
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "stale=false" )
       }
     } )
     expect( a.requestauth( req, res ) ).to.be.true

@@ -90,10 +90,11 @@ class auth {
 
     let headstr = `Digest realm="${this._realm}", algorithm=MD5, `
     if( this._qop ) headstr += `qop="${this._qop}", `
-    headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=` + this._stale?"true":"false"
+    headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=`
+    headstr += this._stale?"true":"false"
 
     this._stale = false
-    
+
     options.headers[ this._header ] = headstr
     res.send( code, options )
     return true
