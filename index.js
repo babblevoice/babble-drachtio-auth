@@ -34,6 +34,12 @@ class auth {
     this._nc = 1
     /** @private */
     this._proxy = true
+
+    /** @private */
+    this._cnonces = new Set()
+    /** @private */
+    this._maxcnonces = 50
+    this._stale = false
   }
 
   /**
@@ -50,6 +56,10 @@ class auth {
   */
   set qop( v = "auth" ) {
     this._qop = v
+  }
+
+  get stale() {
+    return this._stale
   }
 
   /**
@@ -80,8 +90,10 @@ class auth {
 
     let headstr = `Digest realm="${this._realm}", algorithm=MD5, `
     if( this._qop ) headstr += `qop="${this._qop}", `
-    headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=false`
+    headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=` + this._stale?"true":"false"
 
+    this._stale = false
+    
     options.headers[ this._header ] = headstr
     res.send( code, options )
     return true
@@ -108,12 +120,10 @@ class auth {
     /* Response */
     let response = [ ha1hash, this._nonce ]
 
-    if( this._qop ) {
+    if( "auth" === this._qop || "auth-int" === this._qop ) {
 
-      if ( cnonce ) {
-        response.push( ( "" + this._nc ).padStart( 8, "0" ) )
-        response.push( cnonce )
-      }
+      response.push( ( "" + this._nc ).padStart( 8, "0" ) )
+      response.push( cnonce )
 
       response.push( this._qop )
 
@@ -140,6 +150,8 @@ class auth {
   @property {string} response
   @property {string} opaque
   @property {string} cnonce
+  @property {string} nc
+  @property {string} algorithm
   */
 
   /**
@@ -209,14 +221,31 @@ class auth {
       if( this._opaque !== authorization.opaque ) return false
       if( this._nonce !== authorization.nonce ) return false
       if( authorization.uri !== req.msg.uri ) return false
+      if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
+      if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
+          this._nc != authorization.nc ) return false
 
-      let calculatedresponse = this.calcauthhash( authorization.username, password, this._realm, authorization.uri, req.msg.method, authorization.cnonce )
+      if( this._cnonces.size > this._maxcnonces ) {
+        this._stale = true
+        /* regenerate nonce */
+        this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
+        this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
+        this._cnonces.clear()
+      }
+
+      let calculatedresponse = this.calcauthhash( authorization.username,
+                                                  password, this._realm,
+                                                  authorization.uri,
+                                                  req.msg.method,
+                                                  authorization.cnonce )
+
       if( authorization.response !==  calculatedresponse ) return false
     } catch( e ) {
       console.error( e )
       return false
     }
 
+    this._cnonces.add( authorization.cnonce )
     this._nc++
     return true
   }
