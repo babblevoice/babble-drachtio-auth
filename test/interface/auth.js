@@ -193,4 +193,59 @@ opaque="${a._opaque}"`
 
     expect( a._cnonces.size ).to.equal( 1 )
   } )
+
+  it( `repeat cnonce check`, async function() {
+    let client = new sipauth()
+    let server = new sipauth()
+
+    client._nonce = server._nonce
+    client._opaque = server._opaque
+
+    let req = new srf.req()
+    let res = new srf.res()
+
+    req.msg.uri = "sip:123@bob.com"
+
+    let requeststring = ""
+    res.onsend( ( sipcode, msg ) => {
+      if( 407 === sipcode ) {
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+        requeststring = msg.headers[ "Proxy-Authenticate" ]
+      }
+    } )
+
+    server.requestauth( req, res )
+
+    req.set( server._responseheader, requeststring )
+    let authentication = client.parseauthheaders( req, res )
+
+    let password = "123"
+    let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
+
+    authentication.username = "bob"
+    authentication.uri = req.msg.uri
+    authentication.response = hash
+    authentication.cnonce = "a"
+    authentication.nc = "0000001"
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.true
+
+    /* test still works */
+    authentication.cnonce = "b"
+    authentication.nc = "0000002"
+    client._nc = 2
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.true
+
+
+    /* now break on cnonce */
+    authentication.cnonce = "b"
+    authentication.nc = "0000003"
+    client._nc = 3
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.false
+
+  } )
 } )
