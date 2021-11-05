@@ -40,6 +40,11 @@ class auth {
     /** @private */
     this._maxcnonces = 50
     this._stale = false
+
+    /** @private */
+    this._header = "Proxy-Authenticate"
+    /** @private */
+    this._responseheader = "Proxy-Authorization"
   }
 
   /**
