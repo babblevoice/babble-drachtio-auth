@@ -39,6 +39,7 @@ class auth {
     this._cnonces = new Set()
     /** @private */
     this._maxcnonces = 50
+    /** @private */
     this._stale = false
 
     /** @private */
@@ -51,8 +52,16 @@ class auth {
     Are we a proxy of not (401 or 407)
     @param {boolean} value - true = proxy or false
   */
-  set proxy( v = true ) {
+  set proxy( v ) {
     this._proxy = v
+  }
+
+  /**
+    The max number of cnonces we keep before we set a new nonce and set stale flag
+    @param {number} value - the nuber of cnonces to store to protect against replays
+  */
+  set maxcnonces( v ) {
+    this._maxcnonces = v
   }
 
   /**
@@ -237,6 +246,8 @@ class auth {
         this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
         this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
         this._cnonces.clear()
+        this._nc = 1
+        return false
       }
 
       let calculatedresponse = this.calcauthhash( authorization.username,

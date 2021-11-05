@@ -248,4 +248,77 @@ opaque="${a._opaque}"`
     expect( server.verifyauth( req, authentication, password ) ).to.be.false
 
   } )
+
+  it( `set stale correctly`, async function() {
+    let client = new sipauth()
+    let server = new sipauth()
+
+    client._nonce = server._nonce
+    client._opaque = server._opaque
+
+    server.maxcnonces = 2
+
+    let req = new srf.req()
+    let res = new srf.res()
+
+    req.msg.uri = "sip:123@bob.com"
+
+    let requeststring = ""
+    res.onsend( ( sipcode, msg ) => {
+      if( 407 === sipcode ) {
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+        requeststring = msg.headers[ "Proxy-Authenticate" ]
+      }
+    } )
+
+    server.requestauth( req, res )
+
+    req.set( server._responseheader, requeststring )
+    let authentication = client.parseauthheaders( req, res )
+
+    let password = "123"
+    let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
+
+    authentication.username = "bob"
+    authentication.uri = req.msg.uri
+    authentication.response = hash
+    authentication.cnonce = "a"
+    authentication.nc = "0000001"
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.true
+
+    /* test still works */
+    authentication.cnonce = "b"
+    authentication.nc = "0000002"
+    client._nc = 2
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.true
+
+
+    /* now break on cnonce */
+    authentication.cnonce = "c"
+    authentication.nc = "0000003"
+    client._nc = 3
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+
+    expect( server.stale ).to.be.false
+    expect( server.verifyauth( req, authentication, password ) ).to.be.false
+    expect( server.stale ).to.be.true
+
+    server.requestauth( req, res )
+    expect( requeststring ).to.be.a( "string" )
+    expect( requeststring ).to.include( `Digest realm="dummy.com"` )
+    expect( requeststring ).to.include( "algorithm=MD5" )
+    expect( requeststring ).to.include( `qop="auth"` )
+    expect( requeststring ).to.include( "nonce=" )
+    expect( requeststring ).to.include( "opaque=" )
+    expect( requeststring ).to.include( "stale=true" )
+
+    expect( server.cnonces.size ).to.equal( 0 )
+    expect( server._nc ).to.equal( 1 )
+    expect( client._nonce ).to.not.equal( server._nonce )
+    expect( client._opaque ).to.not.equal( server._opaque )
+
+  } )
 } )
