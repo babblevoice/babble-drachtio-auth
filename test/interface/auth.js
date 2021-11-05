@@ -182,5 +182,9 @@ opaque="${a._opaque}"`
     expect( authobj.username ).to.be.a( "string" ).to.equal( username )
     expect( a.verifyauth( req, authobj, password ) ).to.be.true
 
+    /* replay */
+    expect( a.verifyauth( req, authobj, password ) ).to.be.false
+
+    expect( a._cnonces.size ).to.equal( 1 )
   } )
 } )
