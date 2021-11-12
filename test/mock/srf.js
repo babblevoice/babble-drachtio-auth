@@ -1,4 +1,5 @@
 
+const crypto = require( "crypto" )
 const { v4: uuidv4 } = require( "uuid" )
 
 /*
@@ -28,7 +29,12 @@ class req {
     }
 
     this.setparsedheader( "call-id", uuidv4() )
-    this.setparsedheader( "from", { "params": { "tag": "767sf76wew" }, "uri": "sip:1000@dummy.com", "host": "dummy.com" } )
+    this.setparsedheader( "from", {
+    "uri": "sip:1000@dummy.com;transport=UDP",
+    "params": {
+        "tag": crypto.randomBytes( 5 ).toString( "hex" )
+      }
+    } )
   }
 
   /* case insensative */
