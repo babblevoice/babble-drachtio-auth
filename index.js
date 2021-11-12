@@ -85,7 +85,7 @@ class auth {
   requestauth( req, res ) {
 
     let from = req.getParsedHeader( "from" )
-    this._realm = domainnamere.exec( from.host )
+    this._realm = domainnamere.exec( from.uri )
     if( !this._realm || 0 === this._realm.length ) return false
     this._realm = this._realm[ 0 ]
 
