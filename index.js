@@ -181,10 +181,9 @@ class auth {
   /**
   We have a response to our request, pull out all of the headers and return them.
   @param {object} [req] - the req object passed into us from drachtio
-  @param {object} [res] - the res object passed into us from drachtio
   @returns {authorization}
   */
-  parseauthheaders( req, res ) {
+  parseauthheaders( req ) {
 
     let ret = {
       "realm": "",
@@ -200,6 +199,7 @@ class auth {
     }
 
     try {
+      if( !req.has( this._responseheader ) ) return ret
       let authheader = req.get( this._responseheader )
 
       let realm = realmre.exec( authheader )

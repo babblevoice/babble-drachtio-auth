@@ -82,7 +82,7 @@ opaque="${a._opaque}"`
 
     req.set( "authorization", authstr )
 
-    let params = a.parseauthheaders( req, res )
+    let params = a.parseauthheaders( req )
 
     expect( params.realm ).to.equal( "biloxi.com" )
     expect( params.nonce ).to.equal( nonce )
@@ -182,7 +182,7 @@ opaque="${a._opaque}"`
 
     req.set( "authorization", authstr )
 
-    let authobj = a.parseauthheaders( req, res )
+    let authobj = a.parseauthheaders( req )
     expect( authobj ).to.be.a( "object" )
 
     expect( authobj.username ).to.be.a( "string" ).to.equal( username )
@@ -217,7 +217,7 @@ opaque="${a._opaque}"`
     server.requestauth( req, res )
 
     req.set( server._responseheader, requeststring )
-    let authentication = client.parseauthheaders( req, res )
+    let authentication = client.parseauthheaders( req )
 
     let password = "123"
     let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
@@ -274,7 +274,7 @@ opaque="${a._opaque}"`
     server.requestauth( req, res )
 
     req.set( server._responseheader, requeststring )
-    let authentication = client.parseauthheaders( req, res )
+    let authentication = client.parseauthheaders( req )
 
     let password = "123"
     let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
