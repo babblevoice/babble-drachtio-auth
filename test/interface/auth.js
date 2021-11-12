@@ -154,7 +154,7 @@ opaque="${a._opaque}"`
     let req = new srf.req()
     let res = new srf.res()
 
-    req.setparsedheader( "from", { "params": { "tag": "kjhfwieh3" }, "uri": "sip:1000@dummy.com", "host": realm } )
+    req.setparsedheader( "from", { "params": { "tag": "kjhfwieh3" }, "uri": "sip:1000@" + realm } )
     req.msg.uri = uri
     req.msg.method = method
 
@@ -256,7 +256,7 @@ opaque="${a._opaque}"`
     client._nonce = server._nonce
     client._opaque = server._opaque
 
-    server.maxcnonces = 2
+    server._maxcnonces = 1
 
     let req = new srf.req()
     let res = new srf.res()
@@ -315,7 +315,7 @@ opaque="${a._opaque}"`
     expect( requeststring ).to.include( "opaque=" )
     expect( requeststring ).to.include( "stale=true" )
 
-    expect( server.cnonces.size ).to.equal( 0 )
+    expect( server._cnonces.size ).to.equal( 0 )
     expect( server._nc ).to.equal( 1 )
     expect( client._nonce ).to.not.equal( server._nonce )
     expect( client._opaque ).to.not.equal( server._opaque )
