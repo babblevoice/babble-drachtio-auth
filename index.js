@@ -155,6 +155,15 @@ class auth {
   }
 
   /**
+  Has the request got the auth header
+  @param {object} [req] - the req object passed into us from drachtio
+  @returns {boolean}
+  */
+  has( req ) {
+    return req.has( this._responseheader )
+  }
+
+  /**
   Object which references the values in a authorization header.
   @typedef {Object} authorization
   @property {string} realm
