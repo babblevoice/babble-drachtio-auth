@@ -55,7 +55,7 @@ class req {
   }
 
   has( header ) {
-    return header in this.headers || header in this.parsedheaders
+    return header.toLowerCase() in this.headers || header.toLowerCase() in this.parsedheaders
   }
 
   on( event, cb ) {
