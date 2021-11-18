@@ -4,16 +4,16 @@ const crypto = require( "crypto" )
 const domainnamere = /(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/
 
 /* digest components */
-const realmre = /[,\s]{1}realm="?(.+?)[",]/
-const usernamere = /[,\s]{1}username="?(.+?)[",]/
-const noncere = /[,\s]{1}nonce="?(.+?)[",]/
-const cnoncere = /[,\s]{1}cnonce="?(.+?)[",]/
-const urire = /[,\s]{1}uri="?(.+?)[",]/
-const qopre = /[,\s]{1}qop="?(.+?)[",]/
-const responsere = /[,\s]{1}response="?(.+?)[",]/
-const opaquere = /[,\s]{1}opaque="?(.+?)[",]/
-const ncre = /[,\s]{1}nc="?(.+?)[",]/
-const algorithmre = /[,\s]{1}algorithm="?(.+?)[",]/
+const realmre = /[,\s]{1}realm="?(.+?)[",\s]/
+const usernamere = /[,\s]{1}username="?(.+?)[",\s]/
+const noncere = /[,\s]{1}nonce="?(.+?)[",\s]/
+const cnoncere = /[,\s]{1}cnonce="?(.+?)[",\s]/
+const urire = /[,\s]{1}uri="?(.+?)[",\s]/
+const qopre = /[,\s]{1}qop="?(.+?)[",\s]/
+const responsere = /[,\s]{1}response="?(.+?)[",\s]/
+const opaquere = /[,\s]{1}opaque="?(.+?)[",\s]/
+const ncre = /[,\s]{1}nc="?(.+?)[",\s]/
+const algorithmre = /[,\s]{1}algorithm="?(.+?)[",\s]/
 
 
 class auth {
@@ -200,7 +200,9 @@ class auth {
 
     try {
       if( !req.has( this._responseheader ) ) return ret
-      let authheader = req.get( this._responseheader )
+
+      /* add a comma to simplify the regex */
+      let authheader = req.get( this._responseheader ) + ","
 
       let realm = realmre.exec( authheader )
       let username = usernamere.exec( authheader )
@@ -247,7 +249,7 @@ class auth {
       if( authorization.uri !== req.msg.uri ) return false
       if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
       if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
-          this._nc != authorization.nc ) return false
+           this._nc < parseInt( authorization.nc ) ) return false
 
       if( this._cnonces.size > this._maxcnonces ) {
         this._stale = true
@@ -272,7 +274,7 @@ class auth {
     }
 
     this._cnonces.add( authorization.cnonce )
-    this._nc++
+    this._nc = parseInt( authorization.nc ) + 1
     return true
   }
 }
