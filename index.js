@@ -137,7 +137,7 @@ class auth {
 
     if( "auth" === this._qop || "auth-int" === this._qop ) {
 
-      response.push( ( "" + this._nc ).padStart( 8, "0" ) )
+      response.push( ( "" + this._nc.toString( 16 ) ).padStart( 8, "0" ) )
       response.push( cnonce )
 
       response.push( this._qop )
@@ -249,7 +249,7 @@ class auth {
       if( authorization.uri !== req.msg.uri ) return false
       if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
       if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
-           this._nc < parseInt( authorization.nc ) ) return false
+          parseInt( authorization.nc, 16 ) < this._nc ) return false
 
       if( this._cnonces.size > this._maxcnonces ) {
         this._stale = true
@@ -274,7 +274,7 @@ class auth {
     }
 
     this._cnonces.add( authorization.cnonce )
-    this._nc = parseInt( authorization.nc ) + 1
+    this._nc = parseInt( authorization.nc, 16 ) + 1
     return true
   }
 }
