@@ -116,15 +116,16 @@ class auth {
 
   /**
   Calculates the response hash for either checking or sending.
-  @param {string} username
-  @param {string} password
-  @param {string} realm
-  @param {string} uri
-  @param {string} method
-  @param {string} cnonce
-  @returns {string} - the calculated hash
+  @param { string } username
+  @param { string } password
+  @param { string } realm
+  @param { string } uri
+  @param { string } method
+  @param { string } cnonce
+  @param { string } nc = string digits of nonce count
+  @returns {string } - the calculated hash
   */
-  calcauthhash( username, password, realm, uri, method, cnonce ) {
+  calcauthhash( username, password, realm, uri, method, cnonce, nc ) {
 
     let credentials = [ username, realm, password ].join( ":" )
     let methoduri = [ method, uri ].join( ":" )
@@ -137,7 +138,7 @@ class auth {
 
     if( "auth" === this._qop || "auth-int" === this._qop ) {
 
-      response.push( ( "" + this._nc.toString( 16 ) ).padStart( 8, "0" ) )
+      response.push( nc )
       response.push( cnonce )
 
       response.push( this._qop )
@@ -248,8 +249,10 @@ class auth {
       if( this._nonce !== authorization.nonce ) return false
       if( authorization.uri !== req.msg.uri ) return false
       if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
+
+      let currentnc = parseInt( authorization.nc, 16 )
       if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
-          parseInt( authorization.nc, 16 ) < this._nc ) return false
+          currentnc < this._nc ) return false
 
       if( this._cnonces.size > this._maxcnonces ) {
         this._stale = true
@@ -265,7 +268,8 @@ class auth {
                                                   password, this._realm,
                                                   authorization.uri,
                                                   req.msg.method,
-                                                  authorization.cnonce )
+                                                  authorization.cnonce,
+                                                  authorization.nc )
 
       if( authorization.response !==  calculatedresponse ) return false
     } catch( e ) {

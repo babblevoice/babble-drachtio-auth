@@ -121,18 +121,18 @@ opaque="${a._opaque}"`
     let username = "bob"
     let password = "zanzibar"
     let nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093"
-    let opaque = "5ccc069c403ebaf9f0171e9517f40e41"
     let realm = "biloxi.com"
     let uri = "sip:bob@biloxi.com"
     let cnonce = "0a4f113b"
     let method = "INVITE"
     let digest = "89eb0059246c02b2f6ee02c7961d5ea3"
+    let nc = "00000001"
 
     let a = new sipauth()
     a._nonce = nonce
     a._proxy = false
 
-    expect( a.calcauthhash( username, password, realm, uri, method, cnonce ) ).to.equal( digest )
+    expect( a.calcauthhash( username, password, realm, uri, method, cnonce, nc ) ).to.equal( digest )
   } )
 
   it( `verify hash`, async function() {
@@ -140,7 +140,6 @@ opaque="${a._opaque}"`
     let username = "bob"
     let password = "zanzibar"
     let nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093"
-    let opaque = "5ccc069c403ebaf9f0171e9517f40e41"
     let realm = "biloxi.com"
     let uri = "sip:bob@biloxi.com"
     let cnonce = "0a4f113b"
@@ -220,30 +219,28 @@ opaque="${a._opaque}"`
     let authentication = client.parseauthheaders( req )
 
     let password = "123"
-    let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
 
     authentication.username = "bob"
     authentication.uri = req.msg.uri
-    authentication.response = hash
     authentication.cnonce = "a"
     authentication.nc = "0000001"
+
+    authentication.response = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
 
     expect( server.verifyauth( req, authentication, password ) ).to.be.true
 
     /* test still works */
     authentication.cnonce = "b"
-    authentication.nc = "0000002"
-    client._nc = 2
-    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+    authentication.nc = "000000a"
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
 
     expect( server.verifyauth( req, authentication, password ) ).to.be.true
 
 
     /* now break on cnonce */
     authentication.cnonce = "b"
-    authentication.nc = "0000003"
-    client._nc = 3
-    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+    authentication.nc = "000000b"
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, "00000003" )
 
     expect( server.verifyauth( req, authentication, password ) ).to.be.false
 
@@ -277,21 +274,19 @@ opaque="${a._opaque}"`
     let authentication = client.parseauthheaders( req )
 
     let password = "123"
-    let hash = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, "a"/* cnonce */ )
-
     authentication.username = "bob"
     authentication.uri = req.msg.uri
-    authentication.response = hash
     authentication.cnonce = "a"
     authentication.nc = "0000001"
+
+    authentication.response = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
 
     expect( server.verifyauth( req, authentication, password ) ).to.be.true
 
     /* test still works */
     authentication.cnonce = "b"
     authentication.nc = "0000002"
-    client._nc = 2
-    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
 
     expect( server.verifyauth( req, authentication, password ) ).to.be.true
 
@@ -299,8 +294,7 @@ opaque="${a._opaque}"`
     /* now break on cnonce */
     authentication.cnonce = "c"
     authentication.nc = "0000003"
-    client._nc = 3
-    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce )
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
 
     expect( server.stale ).to.be.false
     expect( server.verifyauth( req, authentication, password ) ).to.be.false
