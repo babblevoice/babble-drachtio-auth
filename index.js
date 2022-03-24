@@ -21,7 +21,7 @@ class auth {
   Construct our call object with all defaults.
   @constructs auth
   */
-  constructor() {
+  constructor( proxy = true ) {
     /** @private */
     this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
     /** @private */
@@ -33,7 +33,7 @@ class auth {
     /** @private */
     this._nc = 1
     /** @private */
-    this._proxy = true
+    this._proxy = proxy
 
     /** @private */
     this._cnonces = new Set()
