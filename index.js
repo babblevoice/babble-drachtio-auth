@@ -106,7 +106,7 @@ class auth {
 
     let headstr = `Digest realm="${this._realm}", algorithm=MD5, `
     if( this._qop ) headstr += `qop="${this._qop}", `
-    headstr += `nonce=${this._nonce}, opaque=${this._opaque}, stale=`
+    headstr += `nonce="${this._nonce}", opaque="${this._opaque}", stale=`
     headstr += this._stale?"true":"false"
 
     this._stale = false
