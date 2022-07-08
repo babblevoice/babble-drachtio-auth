@@ -42,6 +42,15 @@ class auth {
     /** @private */
     this._stale = false
 
+    /** @private */
+    this._header = "WWW-Authenticate"
+    /** @private */
+    this._responseheader = "Authorization"
+    if( this._proxy ) {
+      this._header = "Proxy-Authenticate"
+      this._responseheader = "Proxy-Authorization"
+    }
+
   }
 
   static create( proxy ) {
@@ -89,14 +98,8 @@ class auth {
     if( !this._realm || 0 === this._realm.length ) return false
     this._realm = this._realm[ 0 ]
 
-    /** @private */
-    this._header = "WWW-Authenticate"
-    /** @private */
-    this._responseheader = "Authorization"
     let code = 401
     if( this._proxy ) {
-      this._header = "Proxy-Authenticate"
-      this._responseheader = "Proxy-Authorization"
       code = 407
     }
 
