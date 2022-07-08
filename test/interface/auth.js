@@ -1,5 +1,5 @@
 const expect = require( "chai" ).expect
-const sipauth = require( "../../index.js" ).auth
+const sipauth = require( "../../index.js" )
 const srf = require( "../mock/srf.js" )
 
 describe( "sipauth", function() {
@@ -146,9 +146,8 @@ opaque="${a._opaque}"`
     let method = "INVITE"
     let digest = "89eb0059246c02b2f6ee02c7961d5ea3"
 
-    let a = new sipauth()
+    let a = new sipauth( false )
     a._nonce = nonce /* fool */
-    a._proxy = false
 
     let req = new srf.req()
     let res = new srf.res()
