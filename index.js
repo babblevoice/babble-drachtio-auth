@@ -252,7 +252,8 @@ class auth {
 
       if( this._opaque !== authorization.opaque ) return false
       if( this._nonce !== authorization.nonce ) return false
-      if( authorization.uri !== req.msg.uri ) return false
+      /* leave out for now, sipp sets this to nonsence - I suspect other phones might also
+      if( authorization.uri !== req.msg.uri ) return false */
       if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
 
       let currentnc = parseInt( authorization.nc, 16 )

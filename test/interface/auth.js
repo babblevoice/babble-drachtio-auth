@@ -314,4 +314,25 @@ opaque="${a._opaque}"`
     expect( client._opaque ).to.not.equal( server._opaque )
 
   } )
+
+  it( `sipp auth test - captured`, async function() {
+    const req = {
+      has: ( hdr ) => {
+        if( "authorization" == hdr.toLowerCase() ) return true
+        return false
+      },
+      get: ( hdr ) => {
+        if( "authorization" == hdr.toLowerCase() ) {
+          return `Digest username="1000",realm="babblevoice.babblevoice.com",cnonce="6b8b4567",nc=00000001,qop=auth,uri="sip:35.178.55.48:9997",nonce="7b68fd069f40a69c88d81082c470fdcb",response="2c591b56e5e22d41fb4fb6b38a31dd0a",algorithm=MD5,opaque="e007b144960ed4dd1e031c3bca4337a5`
+        }
+      }
+    }
+
+    let server = new sipauth( false )
+    let auth = server.parseauthheaders( req )
+
+    expect( auth.realm ).to.equal( "babblevoice.babblevoice.com" )
+    expect( auth.username ).to.equal( "1000" )
+    expect( auth.uri ).to.equal( "sip:35.178.55.48:9997" )
+  } )
 } )
