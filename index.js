@@ -85,6 +85,19 @@ class auth {
     return this._stale
   }
 
+  set stale( v ) {
+
+    this._stale = false
+    if( v ) {
+      this._stale = true
+      /* regenerate nonce */
+      this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
+      this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
+      this._cnonces.clear()
+      this._nc = 1
+    }
+  } 
+
   /**
   Constructs a request header and sends with either 401 or 407
   @param {object} [req] - the req object passed into us from drachtio
@@ -261,12 +274,7 @@ class auth {
           currentnc < this._nc ) return false
 
       if( this._cnonces.size > this._maxcnonces ) {
-        this._stale = true
-        /* regenerate nonce */
-        this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
-        this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
-        this._cnonces.clear()
-        this._nc = 1
+        this.stale = true
         return false
       }
 

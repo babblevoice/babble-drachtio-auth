@@ -335,4 +335,125 @@ opaque="${a._opaque}"`
     expect( auth.username ).to.equal( "1000" )
     expect( auth.uri ).to.equal( "sip:35.178.55.48:9997" )
   } )
+
+  it( `polycom - captured`, async () => {
+
+    /*
+    REGISTER sip:pierrefouquet.babblevoice.com;transport=udp SIP/2.0
+    Via: SIP/2.0/UDP 82.71.31.12:52917;branch=z9hG4bKef06bc0929D70FF
+    From: "Pierre Test" <sip:1013@pierrefouquet.babblevoice.com>;tag=F87D2248-BCC05E87
+    To: <sip:1013@pierrefouquet.babblevoice.com>
+    CSeq: 2 REGISTER
+    Call-ID: c7f6bc72e0778e72f7055172226c01d1
+    Contact: <sip:1013@82.71.31.12:52917;transport=udp>;methods="INVITE,ACK,BYE,CANCEL,OPTIONS,INFO,MESSAGE,SUBSCRIBE,NOTIFY,PRACK,UPDATE,REFER"
+    User-Agent: PolycomVVX-VVX_350-UA/5.9.5.0614
+    Accept-Language: en
+    Authorization: Digest username="1013", realm="pierrefouquet.babblevoice.com", nonce="921a55467c54fdd626a9077a1c7f6358", qop=auth, cnonce="X+5uJHgPKBGjp82", nc=00000001, opaque="4804ccfd48df7fecce5b185da0e7175d", uri="sip:pierrefouquet.babblevoice.com;transport=udp", response="595e46251eb788c6df3b717fe7ad6f4a", algorithm=MD5
+    Max-Forwards: 70
+    Expires: 3600
+    Content-Length: 0
+
+
+    SIP/2.0 401 Unauthorized
+    Via: SIP/2.0/UDP 82.71.31.12:52917;branch=z9hG4bKef06bc0929D70FF;rport=52917
+    From: "Pierre Test" <sip:1013@pierrefouquet.babblevoice.com>;tag=F87D2248-BCC05E87
+    To: <sip:1013@pierrefouquet.babblevoice.com>;tag=X0N0m3BF2BQ7N
+    Call-ID: c7f6bc72e0778e72f7055172226c01d1
+    CSeq: 2 REGISTER
+    WWW-Authenticate: Digest realm="pierrefouquet.babblevoice.com", algorithm=MD5, qop="auth", nonce="7d4b7aa44cda192fecad03e48a45ca59", opaque="59ea226be29c979bb10105e8ba654779", stale=false
+    Content-Length: 0
+
+
+    13:24:12.887213 IP 82.71.31.12.52917 > 172.31.44.171.palace-6: UDP, length 913
+    E.....@...."RG....,...'....oREGISTER sip:pierrefouquet.babblevoice.com;transport=udp SIP/2.0
+    Via: SIP/2.0/UDP 82.71.31.12:52917;branch=z9hG4bKd1d3d5e6E480CDD
+    From: "Pierre Test" <sip:1013@pierrefouquet.babblevoice.com>;tag=F87D2248-BCC05E87
+    To: <sip:1013@pierrefouquet.babblevoice.com>
+    CSeq: 3 REGISTER
+    Call-ID: c7f6bc72e0778e72f7055172226c01d1
+    Contact: <sip:1013@82.71.31.12:52917;transport=udp>;methods="INVITE,ACK,BYE,CANCEL,OPTIONS,INFO,MESSAGE,SUBSCRIBE,NOTIFY,PRACK,UPDATE,REFER"
+    User-Agent: PolycomVVX-VVX_350-UA/5.9.5.0614
+    Accept-Language: en
+    Authorization: Digest username="1013", realm="pierrefouquet.babblevoice.com", nonce="7d4b7aa44cda192fecad03e48a45ca59", qop=auth, cnonce="nrQhP0p3w8fjTMn", nc=00000001, opaque="59ea226be29c979bb10105e8ba654779", uri="sip:pierrefouquet.babblevoice.com;transport=udp", response="ab709ea589a580790e2e1cea141f7107", algorithm=MD5
+    Max-Forwards: 70
+    Expires: 3600
+    Content-Length: 0
+
+    */
+
+    const req = {
+      msg: {
+        method: "REGISTER",
+      },
+      has: ( hdr ) => {
+        if( "authorization" == hdr.toLowerCase() ) return true
+        return false
+      },
+      get: ( hdr ) => {
+        if( "authorization" == hdr.toLowerCase() ) {
+          return `Digest username="1013", realm="pierrefouquet.babblevoice.com", nonce="7d4b7aa44cda192fecad03e48a45ca59", qop=auth, cnonce="nrQhP0p3w8fjTMn", nc=00000001, opaque="59ea226be29c979bb10105e8ba654779", uri="sip:pierrefouquet.babblevoice.com;transport=udp", response="ab709ea589a580790e2e1cea141f7107", algorithm=MD5`
+        }
+      }
+    }
+
+    let server = new sipauth( false )
+    let auth = server.parseauthheaders( req )
+
+    expect( auth ).to.deep.equal( {
+      realm: "pierrefouquet.babblevoice.com",
+      username: "1013",
+      nonce: "7d4b7aa44cda192fecad03e48a45ca59",
+      uri: "sip:pierrefouquet.babblevoice.com;transport=udp",
+      qop: "auth",
+      response: "ab709ea589a580790e2e1cea141f7107",
+      opaque: "59ea226be29c979bb10105e8ba654779",
+      cnonce: "nrQhP0p3w8fjTMn",
+      nc: "00000001",
+      algorithm: "MD5"
+    } )
+
+    server._nonce = auth.nonce
+    server._opaque = auth.opaque
+    server._realm = auth.realm
+
+    const secret = "sometestsecret"
+    expect( server.calcauthhash( auth.username, secret, auth.realm, auth.uri, req.msg.method, auth.cnonce, auth.nc ) ).to.equal( "ab709ea589a580790e2e1cea141f7107" )
+    expect( server.verifyauth( req, auth, secret ) ).to.be.true
+  } )
+
+  it( `polycom requestauth - captured`, async () => {
+
+    let server = new sipauth( false )
+
+    const req = {
+      getParsedHeader: ( hdr ) => {
+        if( "from" == hdr.toLowerCase() ) {
+          return { uri: `sip:1013@pierrefouquet.babblevoice.com` }
+        }
+      }
+    }
+
+    const history = []
+    const res = {
+      send: ( code, options ) => { history.push( { code, options } ) }
+    }
+
+    server.requestauth( req, res )
+    expect( server._realm ).to.equal( "pierrefouquet.babblevoice.com" )
+
+    /* check nonce and opaque are cycled and stale flag is set correctly (on the first request after) */
+    server.stale = true
+    server.requestauth( req, res )
+    server.requestauth( req, res )
+
+    expect( /[,\s]{1}nonce="?(.+?)[",\s]/.exec( history[ 0 ].options.headers[ "WWW-Authenticate" ] )[ 1 ] )
+      .to.not.equal( /[,\s]{1}nonce="?(.+?)[",\s]/.exec( history[ 1 ].options.headers[ "WWW-Authenticate" ] )[ 1 ] )
+
+    expect( /[,\s]{1}opaque="?(.+?)[",\s]/.exec( history[ 0 ].options.headers[ "WWW-Authenticate" ] )[ 1 ] )
+      .to.not.equal( /[,\s]{1}opaque="?(.+?)[",\s]/.exec( history[ 1 ].options.headers[ "WWW-Authenticate" ] )[ 1 ] )
+
+    expect( /[,\s]{1}stale="?(.+?)[",\s]/.exec( history[ 0 ].options.headers[ "WWW-Authenticate" ] + "," )[ 1 ] ).to.equal( "false" )
+    expect( /[,\s]{1}stale="?(.+?)[",\s]/.exec( history[ 1 ].options.headers[ "WWW-Authenticate" ] + "," )[ 1 ] ).to.equal( "true" )
+    expect( /[,\s]{1}stale="?(.+?)[",\s]/.exec( history[ 2 ].options.headers[ "WWW-Authenticate" ] + "," )[ 1 ] ).to.equal( "false" )
+  } )
 } )
