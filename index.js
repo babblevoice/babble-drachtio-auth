@@ -43,6 +43,9 @@ class auth {
     this._stale = false
 
     /** @private */
+    this._nonceuses = 0
+
+    /** @private */
     this._header = "WWW-Authenticate"
     /** @private */
     this._responseheader = "Authorization"
@@ -94,6 +97,7 @@ class auth {
       this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
       this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
       this._cnonces.clear()
+      this._nonceuses = 0
       this._nc = 1
     }
   } 
@@ -277,10 +281,12 @@ class auth {
         if( incomingnc < this._nc ) return false
       }
 
-      if( this._cnonces.size > this._maxcnonces ) {
+      if( this._nonceuses > this._maxcnonces ) {
         this.stale = true
         return false
       }
+
+      this._nonceuses++
 
       const calculatedresponse = this.calcauthhash( authorization.username,
                                                   password, this._realm,
