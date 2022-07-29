@@ -315,6 +315,66 @@ opaque="${a._opaque}"`
 
   } )
 
+  it( `don't increment nc`, async function() {
+    let client = new sipauth()
+    let server = new sipauth()
+
+    client._nonce = server._nonce
+    client._opaque = server._opaque
+
+    server._maxcnonces = 1
+
+    let req = new srf.req()
+    let res = new srf.res()
+
+    req.msg.uri = "sip:123@bob.com"
+
+    let requeststring = ""
+    res.onsend( ( sipcode, msg ) => {
+      if( 407 === sipcode ) {
+        expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+        requeststring = msg.headers[ "Proxy-Authenticate" ]
+      }
+    } )
+
+    server.requestauth( req, res )
+
+    req.set( server._responseheader, requeststring )
+    let authentication = client.parseauthheaders( req )
+
+    let password = "123"
+    authentication.username = "bob"
+    authentication.uri = req.msg.uri
+    authentication.cnonce = "a"
+    authentication.nc = "0000001"
+
+    authentication.response = client.calcauthhash( "bob", password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.true
+
+    /* change cnonce but not nc */
+    authentication.cnonce = "b"
+    authentication.nc = "0000001"
+    authentication.response = client.calcauthhash( authentication.username, password, authentication.realm, req.msg.uri, req.msg.method, authentication.cnonce, authentication.nc )
+
+    expect( server.verifyauth( req, authentication, password ) ).to.be.false
+
+    server.requestauth( req, res )
+    expect( requeststring ).to.be.a( "string" )
+    expect( requeststring ).to.include( `Digest realm="dummy.com"` )
+    expect( requeststring ).to.include( "algorithm=MD5" )
+    expect( requeststring ).to.include( `qop="auth"` )
+    expect( requeststring ).to.include( "nonce=" )
+    expect( requeststring ).to.include( "opaque=" )
+    expect( requeststring ).to.include( "stale=false" )
+
+    expect( server._cnonces.size ).to.equal( 1 )
+    expect( server._nc ).to.equal( 2 )
+    expect( client._nonce ).to.equal( server._nonce )
+    expect( client._opaque ).to.equal( server._opaque )
+
+  } )
+
   it( `sipp auth test - captured`, async function() {
     const req = {
       has: ( hdr ) => {
