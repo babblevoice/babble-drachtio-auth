@@ -269,16 +269,16 @@ class auth {
       if( authorization.uri !== req.msg.uri ) return false */
       if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
 
-      let currentnc = parseInt( authorization.nc, 16 )
+      const incomingnc = parseInt( authorization.nc, 16 )
       if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
-          currentnc < this._nc ) return false
+            incomingnc < this._nc ) return false
 
       if( this._cnonces.size > this._maxcnonces ) {
         this.stale = true
         return false
       }
 
-      let calculatedresponse = this.calcauthhash( authorization.username,
+      const calculatedresponse = this.calcauthhash( authorization.username,
                                                   password, this._realm,
                                                   authorization.uri,
                                                   req.msg.method,
@@ -286,14 +286,15 @@ class auth {
                                                   authorization.nc )
 
       if( authorization.response !==  calculatedresponse ) return false
+
+      this._cnonces.add( authorization.cnonce )
+      this._nc = incomingnc + 1
+      return true
+
     } catch( e ) {
       console.error( e )
-      return false
     }
-
-    this._cnonces.add( authorization.cnonce )
-    this._nc = parseInt( authorization.nc, 16 ) + 1
-    return true
+    return false
   }
 }
 
