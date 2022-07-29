@@ -265,13 +265,17 @@ class auth {
 
       if( this._opaque !== authorization.opaque ) return false
       if( this._nonce !== authorization.nonce ) return false
+      
       /* leave out for now, sipp sets this to nonsence - I suspect other phones might also
       if( authorization.uri !== req.msg.uri ) return false */
-      if( "" == authorization.cnonce || this._cnonces.has( authorization.cnonce ) ) return false
 
       const incomingnc = parseInt( authorization.nc, 16 )
-      if( ( "auth" === this._qop || "auth-int" === this._qop ) &&
-            incomingnc < this._nc ) return false
+      if( ( "auth" === this._qop || "auth-int" === this._qop ) ) {
+        /* I have modified this as some phones do not alternate cnonce during lifetime of our nonce 
+           just insist there is one */
+        if( "" == authorization.cnonce ) return false
+        if( incomingnc < this._nc ) return false
+      }
 
       if( this._cnonces.size > this._maxcnonces ) {
         this.stale = true
@@ -287,8 +291,11 @@ class auth {
 
       if( authorization.response !==  calculatedresponse ) return false
 
-      this._cnonces.add( authorization.cnonce )
-      this._nc = incomingnc + 1
+      if( ( "auth" === this._qop || "auth-int" === this._qop ) ) {
+        this._cnonces.add( authorization.cnonce )
+        this._nc = incomingnc + 1
+      }
+
       return true
 
     } catch( e ) {
