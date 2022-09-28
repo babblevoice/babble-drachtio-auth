@@ -104,16 +104,21 @@ class auth {
 
   /**
   Constructs a request header and sends with either 401 or 407
-  @param {object} [req] - the req object passed into us from drachtio
-  @param {object} [res] - the res object passed into us from drachtio
-  @returns {boolean} - did it send the request
+  @param { object } req - the req object passed into us from drachtio
+  @param { object } res - the res object passed into us from drachtio
+  @param { string } [ realm ] - optional - override the realm in the uri
+  @returns { boolean } - did it send the request
   */
-  requestauth( req, res ) {
+  requestauth( req, res, realm ) {
 
-    let from = req.getParsedHeader( "from" )
-    this._realm = domainnamere.exec( from.uri )
-    if( !this._realm || 0 === this._realm.length ) return false
-    this._realm = this._realm[ 0 ]
+    if( realm ) {
+      this._realm = realm
+    } else {
+      let from = req.getParsedHeader( "from" )
+      this._realm = domainnamere.exec( from.uri )
+      if( !this._realm || 0 === this._realm.length ) return false
+      this._realm = this._realm[ 0 ]
+    }
 
     let code = 401
     if( this._proxy ) {
