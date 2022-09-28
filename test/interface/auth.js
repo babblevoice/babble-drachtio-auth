@@ -19,20 +19,59 @@ describe( "sipauth", function() {
     req.setparsedheader( "from", { "params": { "tag": "kjhfwieh3" }, "uri": "sip:1000@dummy.com", "host": "dummy.com" } )
 
     let has407beensent = false
-    res.onsend( ( sipcode, msg ) => {
+    let msg
+    res.onsend( ( sipcode, sendmsg ) => {
       if( 407 === sipcode ) {
         has407beensent = true
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `Digest realm="dummy.com"` )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "algorithm=MD5" )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `qop="auth"` )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "nonce=" )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "opaque=" )
-        expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "stale=false" )
+        msg = sendmsg
       }
     } )
     expect( a.requestauth( req, res ) ).to.be.true
     expect( has407beensent ).to.be.true
+
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `Digest realm="dummy.com"` )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "algorithm=MD5" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `qop="auth"` )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "nonce=" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "opaque=" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "stale=false" )
+
+  } )
+
+  it( `request auth - override realm`, async function() {
+    let a = new sipauth()
+
+    expect( a._nonce ).to.be.a( "string" )
+    expect( a._opaque ).to.be.a( "string" )
+    expect( a._qop ).to.be.a( "string" )
+    expect( a._nc ).to.be.a( "number" )
+    expect( a._proxy ).to.be.a( "boolean" )
+
+    let req = new srf.req()
+    let res = new srf.res()
+
+    req.setparsedheader( "from", { "params": { "tag": "kjhfwieh3" }, "uri": "sip:1000@dummy.com", "host": "dummy.com" } )
+
+    let has407beensent = false
+    let msg
+    res.onsend( ( sipcode, sendmsg ) => {
+      if( 407 === sipcode ) {
+        has407beensent = true
+        msg = sendmsg
+      }
+    } )
+
+    expect( a.requestauth( req, res, "anotherdomain.com" ) ).to.be.true
+    expect( has407beensent ).to.be.true
+
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.be.a( "string" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `Digest realm="anotherdomain.com"` )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "algorithm=MD5" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( `qop="auth"` )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "nonce=" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "opaque=" )
+    expect( msg.headers[ "Proxy-Authenticate" ] ).to.include( "stale=false" )
 
   } )
 
