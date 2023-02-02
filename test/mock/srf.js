@@ -30,8 +30,8 @@ class req {
 
     this.setparsedheader( "call-id", uuidv4() )
     this.setparsedheader( "from", {
-    "uri": "sip:1000@dummy.com;transport=UDP",
-    "params": {
+      "uri": "sip:1000@dummy.com;transport=UDP",
+      "params": {
         "tag": crypto.randomBytes( 5 ).toString( "hex" )
       }
     } )
@@ -70,7 +70,7 @@ class req {
 class res {
   constructor() {
     this.callbacks = {
-      "onsend": false
+      "onsend": undefined
     }
   }
 
