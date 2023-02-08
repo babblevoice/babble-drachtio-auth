@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --recursive --check-leaks",
+    "check": "tsc --checkJs --noEmit --target es6 --module commonjs --skipLibCheck *.js test/**/*.js; ./node_modules/eslint/bin/eslint.js ./",
     "docs": "jsdoc -c jsdoc.conf.json"
   },
   "keywords": [
@@ -29,5 +30,14 @@
   "bugs": {
     "url": "https://github.com/babblevoice/babble-drachtio-auth/issues"
   },
-  "homepage": "https://github.com/babblevoice/babble-drachtio-auth#readme"
+  "homepage": "https://github.com/babblevoice/babble-drachtio-auth#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "eslint": "^8.33.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "typescript": "^4.9.5"
+  }
 }
