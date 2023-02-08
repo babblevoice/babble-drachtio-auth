@@ -32,6 +32,8 @@
   },
   "homepage": "https://github.com/babblevoice/babble-drachtio-auth#readme",
   "devDependencies": {
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.13.0",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "eslint": "^8.33.0",
     "eslint-config-standard-with-typescript": "^34.0.0",

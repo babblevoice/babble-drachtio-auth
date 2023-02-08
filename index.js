@@ -36,7 +36,7 @@ class auth {
     this._proxy = proxy
 
     /** @private */
-    this._cnonces = new Set()
+    //this._cnonces = new Set()
     /** @private */
     this._maxcnonces = 50
     /** @private */
@@ -80,14 +80,23 @@ class auth {
     Sets qop value - be careful we only support auth.
     @param { string } value - true = proxy or false
   */
-  set qop( value="auth" ) {
+  set qop( value ) {
     this._qop = value
   }
 
+  /**
+   * Return if we have become stale
+   * @return{ boolean }
+   */
   get stale() {
     return this._stale
   }
 
+  /**
+   * Set the stale flag - and regenerate nonce etc.
+   * @param { boolean } v
+   * @return { void }
+   */
   set stale( v ) {
 
     this._stale = false
@@ -96,7 +105,7 @@ class auth {
       /* regenerate nonce */
       this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
       this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
-      this._cnonces.clear()
+      //this._cnonces.clear()
       this._nonceuses = 0
       this._nc = 1
     }
@@ -161,7 +170,7 @@ class auth {
     const ha2hash = crypto.createHash( "md5" ).update( methoduri ).digest( "hex" )
 
     /* Response */
-    let response = [ ha1hash, this._nonce ]
+    const response = [ ha1hash, this._nonce ]
 
     if( "auth" === this._qop || "auth-int" === this._qop ) {
 
@@ -171,15 +180,13 @@ class auth {
       response.push( this._qop )
 
       response.push( ha2hash )
-      response = response.join( ":" )
 
-      return crypto.createHash( "md5" ).update( response ).digest( "hex" )
+      return crypto.createHash( "md5" ).update( response.join( ":" ) ).digest( "hex" )
     }
 
     response.push( ha2hash )
-    response = response.join( ":" )
 
-    return crypto.createHash( "md5" ).update( response ).digest( "hex" )
+    return crypto.createHash( "md5" ).update( response.join( ":" ) ).digest( "hex" )
   }
 
   /**
@@ -211,6 +218,7 @@ class auth {
   @param {object} req - the req object passed into us from drachtio
   @returns {authorization}
   */
+  // eslint-disable-next-line complexity
   parseauthheaders( req ) {
 
     const ret = {
@@ -283,6 +291,7 @@ class auth {
         /* I have modified this as some phones do not alternate cnonce during lifetime of our nonce 
            just insist there is one */
         if( "" == authorization.cnonce ) return false
+        /* To prevent replay protection we insist nc is incremented */
         if( incomingnc < this._nc ) return false
       }
 
@@ -320,7 +329,6 @@ class auth {
     if( authorization.response !==  calculatedresponse ) return false
 
     if( ( "auth" === this._qop || "auth-int" === this._qop ) ) {
-      this._cnonces.add( authorization.cnonce )
       this._nc = incomingnc + 1
     }
 
