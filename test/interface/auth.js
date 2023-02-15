@@ -1,3 +1,4 @@
+// @ts-nocheck
 const expect = require( "chai" ).expect
 const sipauth = require( "../../index.js" )
 const srf = require( "../mock/srf.js" )

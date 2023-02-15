@@ -80,7 +80,8 @@ class auth {
     Sets qop value - be careful we only support auth.
     @param { string } value - true = proxy or false
   */
-  set qop( value="auth" ) {
+  set qop( value ) {
+    if ( !value ) value = "auth"
     this._qop = value
   }
 
@@ -161,7 +162,8 @@ class auth {
     const ha2hash = crypto.createHash( "md5" ).update( methoduri ).digest( "hex" )
 
     /* Response */
-    let response = [ ha1hash, this._nonce ]
+    const response = [ ha1hash, this._nonce ]
+    let responsestring
 
     if( "auth" === this._qop || "auth-int" === this._qop ) {
 
@@ -171,15 +173,15 @@ class auth {
       response.push( this._qop )
 
       response.push( ha2hash )
-      response = response.join( ":" )
+      responsestring = response.join( ":" )
 
-      return crypto.createHash( "md5" ).update( response ).digest( "hex" )
+      return crypto.createHash( "md5" ).update( responsestring ).digest( "hex" )
     }
 
     response.push( ha2hash )
-    response = response.join( ":" )
+    responsestring = response.join( ":" )
 
-    return crypto.createHash( "md5" ).update( response ).digest( "hex" )
+    return crypto.createHash( "md5" ).update( responsestring ).digest( "hex" )
   }
 
   /**
@@ -211,6 +213,7 @@ class auth {
   @param {object} req - the req object passed into us from drachtio
   @returns {authorization}
   */
+  // eslint-disable-next-line complexity
   parseauthheaders( req ) {
 
     const ret = {
