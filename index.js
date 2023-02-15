@@ -36,7 +36,7 @@ class auth {
     this._proxy = proxy
 
     /** @private */
-    this._cnonces = new Set()
+    //this._cnonces = new Set()
     /** @private */
     this._maxcnonces = 50
     /** @private */
@@ -85,10 +85,19 @@ class auth {
     this._qop = value
   }
 
+  /**
+   * Return if we have become stale
+   * @return{ boolean }
+   */
   get stale() {
     return this._stale
   }
 
+  /**
+   * Set the stale flag - and regenerate nonce etc.
+   * @param { boolean } v
+   * @return { void }
+   */
   set stale( v ) {
 
     this._stale = false
@@ -97,7 +106,7 @@ class auth {
       /* regenerate nonce */
       this._nonce = crypto.randomBytes( 16 ).toString( "hex" )
       this._opaque = crypto.randomBytes( 16 ).toString( "hex" )
-      this._cnonces.clear()
+      //this._cnonces.clear()
       this._nonceuses = 0
       this._nc = 1
     }
@@ -286,6 +295,7 @@ class auth {
         /* I have modified this as some phones do not alternate cnonce during lifetime of our nonce 
            just insist there is one */
         if( "" == authorization.cnonce ) return false
+        /* To prevent replay protection we insist nc is incremented */
         if( incomingnc < this._nc ) return false
       }
 
@@ -323,7 +333,6 @@ class auth {
     if( authorization.response !==  calculatedresponse ) return false
 
     if( ( "auth" === this._qop || "auth-int" === this._qop ) ) {
-      this._cnonces.add( authorization.cnonce )
       this._nc = incomingnc + 1
     }
 

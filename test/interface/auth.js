@@ -223,8 +223,6 @@ opaque="${a._opaque}"`
 
     /* replay */
     expect( a.verifyauth( req, authobj, password ) ).to.be.false
-
-    expect( a._cnonces.size ).to.equal( 1 )
   } )
 
   it( "repeat cnonce check", async function() {
@@ -343,7 +341,6 @@ opaque="${a._opaque}"`
     expect( requeststring ).to.include( "opaque=" )
     expect( requeststring ).to.include( "stale=true" )
 
-    expect( server._cnonces.size ).to.equal( 0 )
     expect( server._nc ).to.equal( 1 )
     expect( client._nonce ).to.not.equal( server._nonce )
     expect( client._opaque ).to.not.equal( server._opaque )
@@ -403,7 +400,6 @@ opaque="${a._opaque}"`
     expect( requeststring ).to.include( "opaque=" )
     expect( requeststring ).to.include( "stale=false" )
 
-    expect( server._cnonces.size ).to.equal( 1 )
     expect( server._nc ).to.equal( 2 )
     expect( client._nonce ).to.equal( server._nonce )
     expect( client._opaque ).to.equal( server._opaque )
