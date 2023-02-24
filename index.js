@@ -81,6 +81,7 @@ class auth {
     @param { string } value - true = proxy or false
   */
   set qop( value ) {
+    if ( !value ) value = "auth"
     this._qop = value
   }
 
@@ -171,6 +172,7 @@ class auth {
 
     /* Response */
     const response = [ ha1hash, this._nonce ]
+    let responsestring
 
     if( "auth" === this._qop || "auth-int" === this._qop ) {
 
@@ -180,13 +182,15 @@ class auth {
       response.push( this._qop )
 
       response.push( ha2hash )
+      responsestring = response.join( ":" )
 
-      return crypto.createHash( "md5" ).update( response.join( ":" ) ).digest( "hex" )
+      return crypto.createHash( "md5" ).update( responsestring ).digest( "hex" )
     }
 
     response.push( ha2hash )
+    responsestring = response.join( ":" )
 
-    return crypto.createHash( "md5" ).update( response.join( ":" ) ).digest( "hex" )
+    return crypto.createHash( "md5" ).update( responsestring ).digest( "hex" )
   }
 
   /**
