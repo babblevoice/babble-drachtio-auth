@@ -1,6 +1,6 @@
 {
   "name": "@babblevoice/babble-drachtio-auth",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple auth functions to auth requests",
   "main": "index.js",
   "scripts": {
@@ -16,8 +16,6 @@
   "author": "Nick Knight",
   "license": "MIT",
   "dependencies": {
-    "chai": "^4.3.4",
-    "mocha": "^9.2.2",
     "uuid": "^8.3.2"
   },
   "directories": {
@@ -32,6 +30,8 @@
   },
   "homepage": "https://github.com/babblevoice/babble-drachtio-auth#readme",
   "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.2.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.13.0",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
