@@ -500,7 +500,8 @@ opaque="${a._opaque}"`
       opaque: "59ea226be29c979bb10105e8ba654779",
       cnonce: "nrQhP0p3w8fjTMn",
       nc: "00000001",
-      algorithm: "MD5"
+      algorithm: "MD5",
+      header: "Authorization"
     } )
 
     server._nonce = auth.nonce
