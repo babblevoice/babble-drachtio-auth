@@ -15,6 +15,17 @@ const opaquere = /[,\s]{1}opaque="?(.+?)[",\s]/
 const ncre = /[,\s]{1}nc="?(.+?)[",\s]/
 const algorithmre = /[,\s]{1}algorithm="?(.+?)[",\s]/
 
+/**
+ * Helper util to pull out regex matches for parseauthheaders
+ * @param { Array } match 
+ * @returns { string }
+ */
+function ifmatchreturn( match ) {
+
+  if( null === match ) return ""
+  if( 0 >= match.length ) return ""
+  return match[ 1 ]
+}
 
 class auth {
   /**
@@ -47,7 +58,10 @@ class auth {
 
     /** @private */
     this._header = "WWW-Authenticate"
-    /** @private */
+    /** 
+     * @type { "Authorization" | "Proxy-Authorization" }
+     * @private 
+     */
     this._responseheader = "Authorization"
     if( this._proxy ) {
       this._header = "Proxy-Authenticate"
@@ -113,12 +127,12 @@ class auth {
   } 
 
   /**
-  Constructs a request header and sends with either 401 or 407
-  @param { object } req - the req object passed into us from drachtio
-  @param { object } res - the res object passed into us from drachtio
-  @param { string } [ realm ] - optional - override the realm in the uri
-  @returns { boolean } - did it send the request
-  */
+   * Constructs a request header and sends with either 401 or 407
+   * @param { object } req - the req object passed into us from drachtio
+   * @param { object } res - the res object passed into us from drachtio
+   * @param { string } [ realm ] - optional - override the realm in the uri
+   *@returns { boolean } - did it send the request
+   */
   requestauth( req, res, realm ) {
 
     if( realm ) {
@@ -152,16 +166,16 @@ class auth {
   }
 
   /**
-  Calculates the response hash for either checking or sending.
-  @param { string } username
-  @param { string } password
-  @param { string } realm
-  @param { string } uri
-  @param { string } method
-  @param { string } cnonce
-  @param { string } nc = string digits of nonce count
-  @returns {string } - the calculated hash
-  */
+   * Calculates the response hash for either checking or sending.
+   * @param { string } username
+   * @param { string } password
+   * @param { string } realm
+   * @param { string } uri
+   * @param { string } method
+   * @param { string } cnonce
+   * @param { string } nc = string digits of nonce count
+   *@returns { string } - the calculated hash
+   */
   calcauthhash( username, password, realm, uri, method, cnonce, nc ) {
 
     const credentials = [ username, realm, password ].join( ":" )
@@ -194,36 +208,37 @@ class auth {
   }
 
   /**
-  Has the request got the auth header
-  @param {object} [req] - the req object passed into us from drachtio
-  @returns {boolean}
-  */
+   * Has the request got the auth header
+   * @param { object } req - the req object passed into us from drachtio
+   * @returns { boolean }
+   */
   has( req ) {
     return req.has( this._responseheader )
   }
 
   /**
-  Object which references the values in a authorization header.
-  @typedef {Object} authorization
-  @property {string} realm
-  @property {string} username
-  @property {string} nonce
-  @property {string} uri
-  @property {string} qop
-  @property {string} response
-  @property {string} opaque
-  @property {string} cnonce
-  @property {string} nc
-  @property {string} algorithm
-  */
+   * Object which references the values in a authorization header.
+   * @typedef { object } authorization
+   * @property { string } realm
+   * @property { string } username
+   * @property { string } nonce
+   * @property { string } uri
+   * @property { string } qop
+   * @property { string } response
+   * @property { string } opaque
+   * @property { string } cnonce
+   * @property { string } nc
+   * @property { string } algorithm
+   * @property { string } header
+   */
 
   /**
-  We have a response to our request, pull out all of the headers and return them.
-  @param {object} req - the req object passed into us from drachtio
-  @returns {authorization}
-  */
-  // eslint-disable-next-line complexity
-  parseauthheaders( req ) {
+   * 
+   * @param { object } req 
+   * @param { "Authorization" | "Proxy-Authorization" } [ header ]
+   * @returns 
+   */
+  static parseauthheaders( req, header ) {
 
     const ret = {
       "realm": "",
@@ -235,14 +250,21 @@ class auth {
       "opaque": "",
       "cnonce": "",
       "nc": "",
-      "algorithm": ""
+      "algorithm": "",
+      "header": ""
     }
 
     try {
-      if( !req.has( this._responseheader ) ) return ret
+      if( !header || !req.has( header ) ) {
+        header = "Authorization"
+        if( !req.has( header ) ) {
+          header = "Proxy-Authorization"
+          if( !req.has( header ) ) return ret
+        }
+      }
 
       /* add a comma to simplify the regex */
-      const authheader = req.get( this._responseheader ) + ","
+      const authheader = req.get( header ) + ","
 
       const realm = realmre.exec( authheader )
       const username = usernamere.exec( authheader )
@@ -255,16 +277,17 @@ class auth {
       const nc = ncre.exec( authheader )
       const algorithm = algorithmre.exec( authheader )
 
-      if( null !== realm && 0 < realm.length ) ret.realm = realm[ 1 ]
-      if( null !== username && 0 < username.length ) ret.username = username[ 1 ]
-      if( null !== nonce && 0 < nonce.length ) ret.nonce = nonce[ 1 ]
-      if( null !== uri && 0 < uri.length ) ret.uri = uri[ 1 ]
-      if( null !== qop && 0 < qop.length ) ret.qop = qop[ 1 ]
-      if( null !== response && 0 < response.length ) ret.response = response[ 1 ]
-      if( null !== opaque && 0 < opaque.length ) ret.opaque = opaque[ 1 ]
-      if( null !== cnonce && 0 < cnonce.length ) ret.cnonce = cnonce[ 1 ]
-      if( null !== nc && 0 < nc.length ) ret.nc = nc[ 1 ]
-      if( null !== algorithm && 0 < algorithm.length ) ret.algorithm = algorithm[ 1 ]
+      ret.header = header
+      ret.realm = ifmatchreturn( realm )
+      ret.username = ifmatchreturn( username )
+      ret.nonce = ifmatchreturn( nonce )
+      ret.uri = ifmatchreturn( uri )
+      ret.qop = ifmatchreturn( qop )
+      ret.response = ifmatchreturn( response )
+      ret.opaque = ifmatchreturn( opaque )
+      ret.cnonce = ifmatchreturn( cnonce )
+      ret.nc = ifmatchreturn( nc )
+      ret.algorithm = ifmatchreturn( algorithm )
     } catch( e ) {
       console.error( e )
     }
@@ -273,13 +296,39 @@ class auth {
   }
 
   /**
-  Verify the requested auth, does not send reponse - the caller should do this.
-  auth.requestauth MUST be called before this call to check
-  @param {object} req - the req object passed into us from drachtio
-  @param { object } authorization
-  @param {string} password
-  @returns {boolean} - success?
-  */
+   * We have a response to our request, pull out all of the headers and return them.
+   * @param { object } req - the req object passed into us from drachtio
+   * @returns { authorization }
+   */
+  parseauthheaders( req ) {
+    return auth.parseauthheaders( req, this._responseheader )
+  }
+
+  /**
+   * Test if incoming auth request matches this auth object
+   * @param { authorization } authorization - as returned by parseauthheaders
+   * @returns 
+   */
+  equal( authorization ) {
+
+    if( 0 == authorization.nonce.length ) return false
+    if( 0 == authorization.nonce.length ) return false
+    if( 0 == authorization.opaque.length ) return false
+
+    if( this._opaque !== authorization.opaque ) return false
+    if( this._nonce !== authorization.nonce ) return false
+
+    return true
+  }
+
+  /**
+   * Verify the requested auth, does not send reponse - the caller should do this.
+   * auth.requestauth MUST be called before this call to check
+   * @param { object } req - the req object passed into us from drachtio
+   * @param { object } authorization
+   * @param { string } password
+   * @returns { boolean } - success?
+   */
   verifyauth( req, authorization, password ) {
 
     try {
