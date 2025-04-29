@@ -138,6 +138,10 @@ class auth {
     if( realm ) {
       this._realm = realm
     } else {
+      if( !req.has( "from" ) ) {
+        res.send( 400 )
+        return false
+      }
       const from = req.getParsedHeader( "from" )
       this._realm = domainnamere.exec( from.uri )
       if( !this._realm || 0 === this._realm.length ) return false
