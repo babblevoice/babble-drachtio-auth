@@ -1,6 +1,6 @@
 {
   "name": "@babblevoice/babble-drachtio-auth",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Simple auth functions to auth requests",
   "main": "index.js",
   "scripts": {
