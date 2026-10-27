@@ -4,7 +4,7 @@
   "description": "Simple auth functions to auth requests",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --recursive --check-leaks",
+    "test": "./node_modules/mocha/bin/mocha.js --recursive --check-leaks",
     "check": "tsc --checkJs --noEmit --target es6 --module commonjs --skipLibCheck *.js test/**/*.js; ./node_modules/eslint/bin/eslint.js ./",
     "docs": "jsdoc -c jsdoc.conf.json"
   },
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/babblevoice/babble-drachtio-auth#readme",
   "devDependencies": {
     "chai": "^4.3.4",
-    "mocha": "^9.2.2",
+    "mocha": "^10.8.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.13.0",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
